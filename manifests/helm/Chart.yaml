@@ -4,7 +4,7 @@ description: A Helm chart for GitOps connector
 
 type: application
 
-version: $APP_BUILD_VERSION
+version: 0.1
 
-appVersion: $APP_BUILD_VERSION
+appVersion: 0.1
 

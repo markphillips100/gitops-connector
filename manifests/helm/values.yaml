@@ -1,6 +1,7 @@
 imageName: ghcr.io/azure/gitops-connector
 imageTag: $IMAGE_TAG
 containerPort: 8080
+imagePullSecrets: []
 
 gitRepositoryType: $GIT_REPOSITORY_TYPE
 ciCdOrchestratorType: $CICD_ORCHESTRATOR_TYPE

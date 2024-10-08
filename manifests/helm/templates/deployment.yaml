@@ -49,6 +49,10 @@ spec:
       labels:
         app: gitops-connector
     spec:
+      imagePullSecrets:
+        {{- range .Values.imagePullSecrets }}
+        - name: {{ . }}
+        {{- end }}
       containers:
       - name: connector
         image: {{  .Values.imageName}}:{{  .Values.imageTag}}

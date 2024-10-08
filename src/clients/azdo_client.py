@@ -3,7 +3,7 @@
 
 import base64
 import utils
-
+import logging
 
 class AzdoClient:
 
@@ -12,6 +12,8 @@ class AzdoClient:
         self.org_url = utils.getenv("AZDO_ORG_URL")
         # token is supposed to be stored in a secret without any transformations
         token = base64.b64encode(f':{utils.getenv("PAT")}'.encode("ascii")).decode("ascii")
+
+        logging.debug(f'PAT: {token}')
         self.headers = {'authorization': f'Basic {token}',
                         'Content-Type': 'application/json'}
 

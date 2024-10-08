@@ -26,7 +26,18 @@ def gitopsphase():
     # Use per process timer to stash the time we got the request
     req_time = time.monotonic_ns()
 
-    payload = request.get_json()
+    raw_data = request.data.decode('utf-8')  # Decode byte data to string
+    logging.debug(f'Raw request data: {raw_data}')
+
+    # Ensure the request is JSON
+    if not request.is_json:
+        return "Invalid content type. Expected application/json.", 400
+
+    try:
+        payload = request.get_json()
+    except Exception as e:
+        logging.error(f'Failed to parse JSON. Error: {e}')
+        return "Malformed JSON data", 400
 
     logging.debug(f'GitOps phase: {payload}')
 
@@ -39,11 +50,11 @@ def gitopsphase():
 cleanup_task = Timeloop()
 
 
-@cleanup_task.job(interval=timedelta(seconds=PR_CLEANUP_INTERVAL))
-def pr_polling_thread_worker():
-    logging.info("Starting periodic PR cleanup")
-    gitops_connector.notify_abandoned_pr_tasks()
-    logging.info(f'Finished PR cleanup, sleeping for {PR_CLEANUP_INTERVAL} seconds...')
+# @cleanup_task.job(interval=timedelta(seconds=PR_CLEANUP_INTERVAL))
+# def pr_polling_thread_worker():
+#     logging.info("Starting periodic PR cleanup")
+#     gitops_connector.notify_abandoned_pr_tasks()
+#     logging.info(f'Finished PR cleanup, sleeping for {PR_CLEANUP_INTERVAL} seconds...')
 
 
 # Git status queue drain task

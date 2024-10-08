@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import logging
+import json
 from operators.gitops_operator import GitopsOperatorInterface
 from operators.git_commit_status import GitCommitStatus
 
@@ -8,6 +10,7 @@ from operators.git_commit_status import GitCommitStatus
 class ArgoGitopsOperator(GitopsOperatorInterface):
 
     def extract_commit_statuses(self, phase_data):
+        logging.debug(f'extract_commit_statuses called.  phase_data: {json.dumps(phase_data, indent=2)}')
         commit_statuses = []
 
         commit_id = self.get_commit_id(phase_data)
@@ -39,8 +42,10 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
         return commit_statuses
 
     def is_finished(self, phase_data):
+        logging.debug(f'is_finished called.  phase_data: {json.dumps(phase_data, indent=2)}')
         phase_status, _, health_status = self._get_statuses(phase_data)
-
+        logging.debug(f'is_finished: phase_status: {phase_status}, health_status: {health_status}')
+        
         is_finished = \
             phase_status != 'Inconclusive' \
             and phase_status != 'Running' \
@@ -48,6 +53,7 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
 
         is_successful = phase_status == 'Succeeded' and health_status == 'Healthy'
 
+        logging.debug(f'is_finished: is_finished: {is_finished}, is_successful: {is_successful}')
         return is_finished, is_successful
 
     def get_commit_id(self, phase_data) -> str:
@@ -66,6 +72,11 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
             genre='ArgoCD')
 
     def is_supported_message(self, phase_data) -> bool:
+        if (phase_data['commitid'] == "<no value>" or 
+            phase_data['resources'] == None or 
+            phase_data['repo_url'] == None or 
+            phase_data['target_revision'] == None):
+            return False
         return True
 
     def _get_deployment_status_summary(self, resources):

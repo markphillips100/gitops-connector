@@ -34,12 +34,16 @@ class GitopsConnector:
             logging.debug(f'Message is not supported: {phase_data}')
 
     def _queue_commit_statuses(self, phase_data, req_time):
+        logging.debug('_queue_commit_statuses called')
         commit_statuses = self._gitops_operator.extract_commit_statuses(phase_data)
         for commit_status in commit_statuses:
             self._global_message_queue.put(item=(req_time, commit_status))
 
     def _notify_orchestrator(self, phase_data, commit_id):
+        logging.debug('_notify_orchestrator called')
         is_finished, is_successful = self._gitops_operator.is_finished(phase_data)
+        logging.debug(f'_notify_orchestrator: is_finished: {is_finished}, is_successful: {is_successful}')
+
         if is_finished:
             self._cicd_orchestrator.notify_on_deployment_completion(commit_id, is_successful)
 

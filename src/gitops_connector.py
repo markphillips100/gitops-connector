@@ -25,13 +25,18 @@ class GitopsConnector:
         self._global_message_queue = PriorityQueue()
 
     def process_gitops_phase(self, phase_data, req_time):
-        if self._gitops_operator.is_supported_message(phase_data):
+        if self._gitops_operator.is_supported_message(phase_data) and self._is_supported_gitops_configuration(phase_data):
             commit_id = self._gitops_operator.get_commit_id(phase_data)
             if not self._git_repository.is_commit_finished(commit_id):
                 self._queue_commit_statuses(phase_data, req_time)
                 self._notify_orchestrator(phase_data, commit_id)
         else:
             logging.debug(f'Message is not supported: {phase_data}')
+
+    def _is_supported_gitops_configuration(self, phase_data):
+        repo_url = self._gitops_operator.get_repo_url(phase_data)
+        target_revision = self._gitops_operator.get_target_revision(phase_data)
+        return self._git_repository.is_supported(repo_url, target_revision)
 
     def _queue_commit_statuses(self, phase_data, req_time):
         logging.debug('_queue_commit_statuses called')

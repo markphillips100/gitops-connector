@@ -23,5 +23,13 @@ class GitopsOperatorInterface(ABC):
         pass
 
     @abstractmethod
+    def get_repo_url(self, phase_data) -> str:
+        pass
+
+    @abstractmethod
+    def get_target_revision(self, phase_data) -> str:
+        pass
+
+    @abstractmethod
     def is_supported_message(self, phase_data) -> bool:
         pass

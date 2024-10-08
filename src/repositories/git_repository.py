@@ -29,3 +29,7 @@ class GitRepositoryInterface(ABC):
     @abstractmethod
     def is_commit_finished(self, commit_id):
         pass
+
+    @abstractmethod
+    def is_supported(self, repo_url, target_revision):
+        pass

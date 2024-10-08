@@ -59,6 +59,12 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
     def get_commit_id(self, phase_data) -> str:
         return phase_data['commitid']
 
+    def get_repo_url(self, phase_data) -> str:
+        return phase_data['repo_url']
+
+    def get_target_revision(self, phase_data) -> str:
+        return phase_data['target_revision']
+
     def _get_statuses(self, phase_data):
         return phase_data['phase'], phase_data['sync_status'], phase_data['health']
 

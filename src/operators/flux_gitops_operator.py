@@ -128,6 +128,15 @@ class FluxGitopsOperator(GitopsOperatorInterface):
                 revision = phase_data['metadata']['source.toolkit.fluxcd.io/revision']
 
         return parse_commit_id(revision)
+    
+    def get_repo_url(self, phase_data) -> str:
+        raise NotImplementedError("This operation is not supported")
+
+    def get_target_revision(self, phase_data) -> str:
+        raise NotImplementedError("This operation is not supported")
+
+    def get_target_revision(self, phase_data) -> str:
+        return phase_data['target_revision']    
 
     def is_supported_message(self, phase_data) -> bool:
         kind = self._get_message_kind(phase_data)

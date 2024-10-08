@@ -101,3 +101,6 @@ class GitHubGitRepository(GitRepositoryInterface):
 
     def get_prs(self, pr_status):
         pass
+
+    def is_supported(self, repo_url, target_revision):
+        return False

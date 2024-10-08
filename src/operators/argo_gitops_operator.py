@@ -5,9 +5,12 @@ import logging
 import json
 from operators.gitops_operator import GitopsOperatorInterface
 from operators.git_commit_status import GitCommitStatus
-
+from configuration.gitops_config import GitOpsConfig
 
 class ArgoGitopsOperator(GitopsOperatorInterface):
+
+    def __init__(self, gitops_config: GitOpsConfig):
+        super().__init__(gitops_config)
 
     def extract_commit_statuses(self, phase_data):
         logging.debug(f'extract_commit_statuses called.  phase_data: {json.dumps(phase_data, indent=2)}')
@@ -59,12 +62,6 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
     def get_commit_id(self, phase_data) -> str:
         return phase_data['commitid']
 
-    def get_repo_url(self, phase_data) -> str:
-        return phase_data['repo_url']
-
-    def get_target_revision(self, phase_data) -> str:
-        return phase_data['target_revision']
-
     def _get_statuses(self, phase_data):
         return phase_data['phase'], phase_data['sync_status'], phase_data['health']
 
@@ -79,9 +76,7 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
 
     def is_supported_message(self, phase_data) -> bool:
         if (phase_data['commitid'] == "<no value>" or 
-            phase_data['resources'] == None or 
-            phase_data['repo_url'] == None or 
-            phase_data['target_revision'] == None):
+            phase_data['resources'] == None):
             return False
         return True
 

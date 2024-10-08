@@ -10,7 +10,6 @@ data:
   
   {{- if eq .Values.gitRepositoryType "AZDO"}}
   AZDO_GITOPS_REPO_NAME: {{ required "Provide a value for azdoGitOpsRepoName" .Values.azdoGitOpsRepoName}}
-  AZDO_GITOPS_TARGET_REVISION: {{ required "Provide a value for azdoGitOpstargetRevision" .Values.azdoGitOpsTargetRevision}}
   {{- end }}
   
   {{- if and (eq .Values.ciCdOrchestratorType "AZDO") (.Values.azdoPrRepoName)}}
@@ -50,6 +49,7 @@ spec:
       labels:
         app: gitops-connector
     spec:
+      serviceAccount: gitops-connector
       imagePullSecrets:
         {{- range .Values.imagePullSecrets }}
         - name: {{ . }}
@@ -84,11 +84,6 @@ spec:
             configMapKeyRef:
               name: gitops-connector-cm
               key: AZDO_GITOPS_REPO_NAME
-        - name: AZDO_GITOPS_TARGET_REVISION
-          valueFrom:
-            configMapKeyRef:
-              name: gitops-connector-cm
-              key: AZDO_GITOPS_TARGET_REVISION
       {{- end}}              
       {{- if and (eq .Values.ciCdOrchestratorType "AZDO") (.Values.azdoPrRepoName)}}
         - name: AZDO_PR_REPO_NAME

@@ -8,18 +8,17 @@ import requests
 import utils
 from clients.azdo_client import AzdoClient
 from repositories.git_repository import GitRepositoryInterface
-
+from configuration.gitops_config import GitOpsConfig
 
 PR_METADATA_KEY = "callback-task-id"
 
 
 class AzdoGitRepository(GitRepositoryInterface):
 
-    def __init__(self):
-        self.gitops_repo_name = utils.getenv("AZDO_GITOPS_REPO_NAME")
-        self.gitops_target_revision = utils.getenv("AZDO_GITOPS_TARGET_REVISION")
-        self.pr_repo_name = os.getenv("AZDO_PR_REPO_NAME", self.gitops_repo_name)
-        self.azdo_client = AzdoClient()
+    def __init__(self, gitops_config: GitOpsConfig):
+        self.gitops_repo_name = gitops_config.azdo_gitops_repo_name # utils.getenv("AZDO_GITOPS_REPO_NAME")
+        self.pr_repo_name = gitops_config.azdo_pr_repo_name # os.getenv("AZDO_PR_REPO_NAME", self.gitops_repo_name)
+        self.azdo_client = AzdoClient(gitops_config)
         self.repository_api = f'{self.azdo_client.get_rest_api_url()}/_apis/git/repositories/{self.gitops_repo_name}'
         self.pr_repository_api = f'{self.azdo_client.get_rest_api_url()}/_apis/git/repositories/{self.pr_repo_name}'
         self.headers = self.azdo_client.get_rest_api_headers()
@@ -139,9 +138,4 @@ class AzdoGitRepository(GitRepositoryInterface):
         return pr_num
 
     def is_commit_finished(self, commit_id):
-        return False
-
-    def is_supported(self, repo_url:str, target_revision:str):
-        if repo_url.endswith(self.gitops_repo_name) and self.gitops_target_revision == target_revision:
-            return True
         return False

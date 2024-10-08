@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import threading
 import logging
 from queue import PriorityQueue
 
@@ -8,35 +9,49 @@ from operators.gitops_operator_factory import GitopsOperatorFactory
 from repositories.git_repository_factory import GitRepositoryFactory
 from repositories.raw_subscriber import RawSubscriberFactory
 from orchestrators.cicd_orchestrator_factory import CicdOrchestratorFactory
-
+from configuration.gitops_config import GitOpsConfig
 
 # Instance is shared across threads.
 class GitopsConnector:
 
-    def __init__(self):
-        self._gitops_operator = GitopsOperatorFactory.new_gitops_operator()
-        self._git_repository = GitRepositoryFactory.new_git_repository()
-        self._cicd_orchestrator = CicdOrchestratorFactory.new_cicd_orchestrator(self._git_repository)
+    def __init__(self, gitops_config: GitOpsConfig):
+        logging.debug(f'Creating GitopsConnector for {gitops_config.name}')
+        self._gitops_config = gitops_config
+        self._gitops_operator = GitopsOperatorFactory.new_gitops_operator(gitops_config)
+        self._git_repository = GitRepositoryFactory.new_git_repository(gitops_config)
+        self._cicd_orchestrator = CicdOrchestratorFactory.new_cicd_orchestrator(self._git_repository, gitops_config)
 
+        self.status_thread = None
+        self.status_thread_running = False
+        
         # Subscribers that take unprocessed JSON, forwarded from the notifications
         self._raw_subscribers = RawSubscriberFactory.new_raw_subscribers()
 
         # Commit status notification queue
         self._global_message_queue = PriorityQueue()
 
+    def start_status_thread(self):
+        if not self.status_thread_running:
+            self.status_thread_running = True
+            self.status_thread = threading.Thread(target=self.drain_commit_status_queue)
+            self.status_thread.start()
+            logging.debug('Started status thread')
+
+    def stop_status_thread(self):
+        if self.status_thread_running:
+            self.status_thread_running = False
+            if self.status_thread:
+                self.status_thread.join()
+                logging.debug('Stopped status thread')
+
     def process_gitops_phase(self, phase_data, req_time):
-        if self._gitops_operator.is_supported_message(phase_data) and self._is_supported_gitops_configuration(phase_data):
+        if self._gitops_operator.is_supported_message(phase_data):
             commit_id = self._gitops_operator.get_commit_id(phase_data)
             if not self._git_repository.is_commit_finished(commit_id):
                 self._queue_commit_statuses(phase_data, req_time)
                 self._notify_orchestrator(phase_data, commit_id)
         else:
             logging.debug(f'Message is not supported: {phase_data}')
-
-    def _is_supported_gitops_configuration(self, phase_data):
-        repo_url = self._gitops_operator.get_repo_url(phase_data)
-        target_revision = self._gitops_operator.get_target_revision(phase_data)
-        return self._git_repository.is_supported(repo_url, target_revision)
 
     def _queue_commit_statuses(self, phase_data, req_time):
         logging.debug('_queue_commit_statuses called')
@@ -88,5 +103,5 @@ class GitopsConnector:
                 logging.error(f'Unexpected exception in the message queue draining thread: {e}')
 
 
-if __name__ == "__main__":
-    git_ops_connector = GitopsConnector()
+# if __name__ == "__main__":
+#     git_ops_connector = GitopsConnector()

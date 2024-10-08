@@ -9,6 +9,7 @@ import dateutil.parser
 from orchestrators.cicd_orchestrator import CicdOrchestratorInterface
 from repositories.git_repository import GitRepositoryInterface
 from clients.azdo_client import AzdoClient
+from configuration.gitops_config import GitOpsConfig
 
 # Callback task timeout in minutes. PRs abandoned before this time will not be processed.
 MAX_TASK_TIMEOUT = 72 * 60
@@ -17,9 +18,9 @@ TASK_CUTOFF_DURATION = timedelta(minutes=MAX_TASK_TIMEOUT)
 
 class AzdoCicdOrchestrator(CicdOrchestratorInterface):
 
-    def __init__(self, git_repository: GitRepositoryInterface):
+    def __init__(self, git_repository: GitRepositoryInterface, gitops_config: GitOpsConfig):
         super().__init__(git_repository)
-        self.azdo_client = AzdoClient()
+        self.azdo_client = AzdoClient(gitops_config)
         self.headers = self.azdo_client.get_rest_api_headers()
 
     def notify_on_deployment_completion(self, commit_id, is_successful):

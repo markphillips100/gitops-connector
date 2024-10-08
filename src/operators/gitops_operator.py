@@ -3,12 +3,12 @@
 
 import utils
 from abc import ABC, abstractmethod
-
+from configuration.gitops_config import GitOpsConfig
 
 class GitopsOperatorInterface(ABC):
 
-    def __init__(self):
-        self.callback_url = utils.getenv("GITOPS_APP_URL")
+    def __init__(self, gitops_config: GitOpsConfig):
+        self.callback_url = gitops_config.gitops_app_url # utils.getenv("GITOPS_APP_URL")
 
     @abstractmethod
     def extract_commit_statuses(self, phase_data):
@@ -20,14 +20,6 @@ class GitopsOperatorInterface(ABC):
 
     @abstractmethod
     def get_commit_id(self, phase_data) -> str:
-        pass
-
-    @abstractmethod
-    def get_repo_url(self, phase_data) -> str:
-        pass
-
-    @abstractmethod
-    def get_target_revision(self, phase_data) -> str:
         pass
 
     @abstractmethod

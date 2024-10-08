@@ -5,6 +5,7 @@ from collections import defaultdict
 import logging
 from operators.gitops_operator import GitopsOperatorInterface
 from operators.git_commit_status import GitCommitStatus
+from configuration.gitops_config import GitOpsConfig
 
 KUSTOMIZATION_PHASE = "Kustomization"
 PROGRESSING_STATE = "Progressing"
@@ -12,6 +13,9 @@ HEALTH_CHECK_FAILED_STATE = "HealthCheckFailed"
 
 
 class FluxGitopsOperator(GitopsOperatorInterface):
+
+    def __init__(self, gitops_config: GitOpsConfig):
+        super().__init__(gitops_config)
 
     def extract_commit_statuses(self, phase_data):
         commit_statuses = []
@@ -129,15 +133,6 @@ class FluxGitopsOperator(GitopsOperatorInterface):
 
         return parse_commit_id(revision)
     
-    def get_repo_url(self, phase_data) -> str:
-        raise NotImplementedError("This operation is not supported")
-
-    def get_target_revision(self, phase_data) -> str:
-        raise NotImplementedError("This operation is not supported")
-
-    def get_target_revision(self, phase_data) -> str:
-        return phase_data['target_revision']    
-
     def is_supported_message(self, phase_data) -> bool:
         kind = self._get_message_kind(phase_data)
         logging.debug(f'Kind: {kind}')

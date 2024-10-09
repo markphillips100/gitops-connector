@@ -65,9 +65,9 @@ spec:
   azdoOrgUrl: "https://dev.azure.com/myorg/MyProject"
 ```
 
-For this configuration to be used for processing a message from a gitop operator, setup the required Alert or Notification as follows:
+For this configuration to be used for processing a message from a gitop operator, setup the required Alert or Notification as follows.
 
-For ArgoCD Notifications:
+#### ArgoCD Notifications Setup
 ```
 data:
   trigger.sync-operation-status: |
@@ -104,7 +104,9 @@ data:
           }
 ```
 
-For FluxV2:
+This config expects the monitored Application manifest to have an annotation of `gitops-connector-config-name` set with the value of the named configuration that should handle the notifications.
+
+#### FluxV2 Alert Setup
 ```
 TBD
 ```

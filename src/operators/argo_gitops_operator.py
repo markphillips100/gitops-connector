@@ -74,8 +74,13 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
             gitops_operator='ArgoCD',
             genre='ArgoCD')
 
+    def is_supported_operator(self, phase_data) -> bool:
+        return (self.gitops_config.name == 'singleInstance' or
+                self.gitops_config.name != 'singleInstance' and phase_data.get('gitops_connector_config_name') == self.gitops_config.name)
+
     def is_supported_message(self, phase_data) -> bool:
-        if (phase_data['commitid'] == "<no value>" or 
+        if ((not self.is_supported_operator(phase_data)) or
+            phase_data['commitid'] == "<no value>" or 
             phase_data['resources'] == None):
             return False
         return True

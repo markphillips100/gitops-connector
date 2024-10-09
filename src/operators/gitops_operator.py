@@ -8,6 +8,7 @@ from configuration.gitops_config import GitOpsConfig
 class GitopsOperatorInterface(ABC):
 
     def __init__(self, gitops_config: GitOpsConfig):
+        self.gitops_config = gitops_config
         self.callback_url = gitops_config.gitops_app_url # utils.getenv("GITOPS_APP_URL")
 
     @abstractmethod

@@ -45,6 +45,9 @@ class GitopsConnector:
         # Commit status notification queue
         self._global_message_queue = PriorityQueue()
 
+    def is_supported_message(self, payload):
+        return self._gitops_operator.is_supported_message(payload)
+    
     def start_background_work(self):
         self._start_status_thread()
         self._start_cleanup_task()

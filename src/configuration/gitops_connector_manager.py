@@ -36,3 +36,10 @@ class GitOpsConnectorManager:
         for connector in self.connectors.values():
             connector.stop_background_work()
         logging.debug("All background work stopped.")
+
+    def get_supported_gitops_connector(self, payload):
+        """Get the gitops_connector object by payload."""
+        for connector in self.connectors.values():
+            if (connector.is_supported_message(payload)):
+                return connector
+        return None

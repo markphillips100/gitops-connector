@@ -134,6 +134,9 @@ class FluxGitopsOperator(GitopsOperatorInterface):
         return parse_commit_id(revision)
     
     def is_supported_message(self, phase_data) -> bool:
+
+        # TODO: Add check for ('gitops_connector_config_name', 'singleInstance') != self.gitops_config.name
+
         kind = self._get_message_kind(phase_data)
         logging.debug(f'Kind: {kind}')
 

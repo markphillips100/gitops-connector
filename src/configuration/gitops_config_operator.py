@@ -7,9 +7,9 @@ from typing import Callable, Optional, List
 from configuration.gitops_connector_manager import GitOpsConnectorManager
 
 class GitOpsConfigOperator:
-    def __init__(self):
+    def __init__(self, connector_manager: GitOpsConnectorManager):
         self.configurations = {}  # Store configuration objects indexed by resource name
-        self.connector_manager = GitOpsConnectorManager()
+        self.connector_manager = connector_manager
 
     def run(self):
         logging.info("Starting GitOps Operator")
@@ -18,7 +18,7 @@ class GitOpsConfigOperator:
         # Start Kopf event handlers
         kopf.run()
 
-    def create_fn(self, spec, name, **kwargs):
+    def create(self, spec, name):
         logging.info(f"GitOpsConfig created: {name}")
         config = self.parse_config(spec, name)
         self.configurations[name] = config
@@ -26,7 +26,7 @@ class GitOpsConfigOperator:
         self.connector_manager.add_or_update_configuration(config)
         logging.info(f"Configuration added for {name}: {config}")
 
-    def update_fn(self, spec, name, **kwargs):
+    def update(self, spec, name):
         logging.info(f"GitOpsConfig updated: {name}")
         config = self.parse_config(spec, name)
         self.configurations[name] = config
@@ -34,7 +34,7 @@ class GitOpsConfigOperator:
         self.connector_manager.add_or_update_configuration(config)
         logging.info(f"Configuration updated for {name}: {config}")
 
-    def delete_fn(self, name, **kwargs):
+    def delete(self, name):
         logging.info(f"GitOpsConfig deleted: {name}")
         if name in self.configurations:
             config = self.configurations[name]
@@ -62,9 +62,9 @@ class GitOpsConfigOperator:
         """Get the configuration object by name."""
         return self.configurations.get(name)
     
-    def get_gitops_connector(self, name):
-        """Get the gitops_connector object by name."""
-        return self.connector_manager.connectors.get(name)
+    # def get_gitops_connector(self, name):
+    #     """Get the gitops_connector object by name."""
+    #     return self.connector_manager.connectors.get(name)
 
     def stop_all(self):
         self.connector_manager.stop_all()

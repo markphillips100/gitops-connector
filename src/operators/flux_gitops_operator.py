@@ -133,17 +133,20 @@ class FluxGitopsOperator(GitopsOperatorInterface):
 
         return parse_commit_id(revision)
     
+    def is_supported_operator(self, phase_data) -> bool:
+        return (self.gitops_config.name == 'singleInstance' or
+               (self.gitops_config.name != 'singleInstance' and 
+                'gitops_connector_config_name' in phase_data['metadata'] and 
+                phase_data['metadata']['gitops_connector_config_name'] == self.gitops_config.name))
+
     def is_supported_message(self, phase_data) -> bool:
-
-        # TODO: Add check for ('gitops_connector_config_name', 'singleInstance') != self.gitops_config.name
-
         kind = self._get_message_kind(phase_data)
         logging.debug(f'Kind: {kind}')
 
         reason = phase_data['reason']
         logging.debug(f'Reason: {reason}')
 
-        return (kind == 'Kustomization' or kind == 'GitRepository' and reason != 'NewArtifact')
+        return self.is_supported_operator(phase_data) and (kind == 'Kustomization' or kind == 'GitRepository' and reason != 'NewArtifact')
 
     def _get_message_kind(self, phase_data) -> str:
         return phase_data['involvedObject']['kind']

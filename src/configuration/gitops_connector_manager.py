@@ -13,26 +13,26 @@ class GitOpsConnectorManager:
 
         if existing_connector:
             # Stop the background work if the configuration is being updated
-            existing_connector.stop_status_thread()
+            existing_connector.start_background_work()
 
         # Create a new connector for the updated configuration
         new_connector = GitopsConnector(config)
         self.connectors[config.name] = new_connector
 
         # Start background work
-        new_connector.start_status_thread()
+        new_connector.start_background_work()
         logging.debug(f"Configuration for {config.name} added/updated.")
 
     def remove_configuration(self, config: GitOpsConfig):
         """Remove a configuration and stop the associated connector."""
         connector = self.connectors.get(config.name)
         if connector:
-            connector.stop_status_thread()
+            connector.stop_background_work()
             del self.connectors[config.name]
             logging.debug(f"Configuration for {config.name} removed.")
 
     def stop_all(self):
         """Stop all connectors when shutting down the operator."""
         for connector in self.connectors.values():
-            connector.stop_status_thread()
+            connector.stop_background_work()
         logging.debug("All background work stopped.")

@@ -22,27 +22,98 @@ helm upgrade gitops-connector gitops-connector \
 
 ## Values
 
-### Configuration
+### Single Instance vs Multiple Instances
+
+The gitops-connector supports operation in two different modes;  Single Instance and Multiple Instances.
+
+### Single Instance Configuration
+
+This behaves in the same way as the original.  Configuration is for one combination of gitops operator, respository and orchestrator, and config data is supplied via helm chart values as shown below.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| gitRepositoryType | string | `""` | Git Repository Type (`AZDO` or `GITHUB`) |
-| ciCdOrchestratorType | string | `""` | CI/CD Orchestrator Type (`AZDO` or `GITHUB`) |
-| gitOpsOperatorType | string | `""` | GitOps Operator Type (`FLUX` or `ARGOCD`) |
-| gitOpsAppURL | string | `""` | Call back URL from the Commit Status Window e.g. `https://github.com/kaizentm/gitops-manifests/commit; https://github.com/microsoft/spektate` |
-| orchestratorPAT | string | `""` | GitHub or Azure DevOps personal access token |
-| azdoGitOpsRepoName | string | `""` | Azure DevOps Mainifests repository name. Required if `gitRepositoryType` is `AZDO` |
-| azdoOrgUrl | string | `""` | Azure DevOps Organization URL. Required if `gitRepositoryType` or `ciCdOrchestratorType` is `AZDO`. e.g. `https://dev.azure.com/organization/project` |
-| azdoPrRepoName | string | `""` | If `ciCdOrchestratorType` is `AZDO` and when PRs are not issued to the manifests repo, but to a separate HLD repo. Optional. |
-| gitHubGitOpsManifestsRepoName | string | `""` | GitHub Mainifests repository name. Required if `gitRepositoryType` is `GITHUB` |
-| gitHubOrgUrl | string | `""` | GitHub Organization URL. Required if `gitRepositoryType` or `ciCdOrchestratorType` is `GITHUB`. e.g. `https://api.github.com/owner/repo` |
-| gitHubGitOpsRepoName | string | `""` | GitHub Actions repository name. Required if `ciCdOrchestratorType` is `GITHUB` |
-| subscribers | object | `{}` | Optional list of subscriber endpoints to send raw JSON to |
+| singleInstance.gitRepositoryType | string | `""` | Git Repository Type (`AZDO` or `GITHUB`) |
+| singleInstance.ciCdOrchestratorType | string | `""` | CI/CD Orchestrator Type (`AZDO` or `GITHUB`) |
+| singleInstance.gitOpsOperatorType | string | `""` | GitOps Operator Type (`FLUX` or `ARGOCD`) |
+| singleInstance.gitOpsAppURL | string | `""` | Call back URL from the Commit Status Window e.g. `https://github.com/kaizentm/gitops-manifests/commit; https://github.com/microsoft/spektate` |
+| singleInstance.azdoGitOpsRepoName | string | `""` | Azure DevOps Mainifests repository name. Required if `gitRepositoryType` is `AZDO` |
+| singleInstance.azdoOrgUrl | string | `""` | Azure DevOps Organization URL. Required if `gitRepositoryType` or `ciCdOrchestratorType` is `AZDO`. e.g. `https://dev.azure.com/organization/project` |
+| singleInstance.azdoPrRepoName | string | `""` | If `ciCdOrchestratorType` is `AZDO` and when PRs are not issued to the manifests repo, but to a separate HLD repo. Optional. |
+| singleInstance.gitHubGitOpsManifestsRepoName | string | `""` | GitHub Mainifests repository name. Required if `gitRepositoryType` is `GITHUB` |
+| singleInstance.gitHubOrgUrl | string | `""` | GitHub Organization URL. Required if `gitRepositoryType` or `ciCdOrchestratorType` is `GITHUB`. e.g. `https://api.github.com/owner/repo` |
+| singleInstance.gitHubGitOpsRepoName | string | `""` | GitHub Actions repository name. Required if `ciCdOrchestratorType` is `GITHUB` |
+| singleInstance.subscribers | object | `{}` | Optional list of subscriber endpoints to send raw JSON to |
+
+### Multiple Instances Configuration
+
+Setting `singleInstance: null` in the helm chart's values file deploys a CRD for `gitopsconfig` resources and informs the gitops-connector to watch for these to automatically configure named instances of each combination of supported operator, repository and orchestrator.
+
+Each alert (Flux) or notification (ArgoCD) must send a `gitops_connector_config_name` property with a value that matches a named configuration defined by a gitsopsconfig manifest.  See her for an example of a manifest:
+
+```
+apiVersion: example.com/v1
+kind: GitOpsConfig
+metadata:
+  name: my-gitops-repo-stage-dev
+spec:
+  gitRepositoryType: "AZDO"
+  ciCdOrchestratorType: "AZDO"
+  gitOpsOperatorType: "ARGOCD"
+  gitOpsAppURL: "https://dev.azure.com/myorg/MyProject/_git/my-gitops-repo"
+  azdoGitOpsRepoName: "my-gitops-repo"
+  azdoPrRepoName: "my-gitops-repo"
+  azdoOrgUrl: "https://dev.azure.com/myorg/MyProject"
+```
+
+For this configuration to be used for processing a message from a gitop operator, setup the required Alert or Notification as follows:
+
+For ArgoCD Notifications:
+```
+data:
+  trigger.sync-operation-status: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [sync-operation-status-change]
+    - when: app.status.operationState.phase in ['Succeeded']
+      send: [sync-operation-status-change]
+    - when: app.status.operationState.phase in ['Running']
+      send: [sync-operation-status-change]
+    - when: app.status.health.status in ['Progressing']
+      send: [sync-operation-status-change]
+    - when: app.status.health.status in ['Healthy'] && app.status.operationState.phase in ['Succeeded']
+      send: [sync-operation-status-change]
+    - when: app.status.health.status in ['Unknown', 'Suspended', 'Degraded', 'Missing', 'Healthy']
+      send: [sync-operation-status-change]
+  service.webhook.gitops-connector: |
+    url: http://gitops-connector.gitops:8080/gitopsphase
+    headers:
+    - name: Content-Type
+      value: application/json
+  template.sync-operation-status-change: |
+    webhook:
+      gitops-connector:
+        method: POST
+        body: |
+          {
+            "commitid": "{{.app.status.operationState.operation.sync.revision}}",
+            "phase": "{{.app.status.operationState.phase}}",
+            "sync_status": "{{.app.status.sync.status}}",
+            "health": "{{.app.status.health.status}}",
+            "message": "{{.app.status.operationState.message}}",
+            "resources": {{toJson .app.status.resources}},
+            "gitops_connector_config_name": "{{ index .app.metadata.annotations "gitops-connector-config-name" }}"
+          }
+```
+
+For FluxV2:
+```
+TBD
+```
 
 ### Common
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| orchestratorPAT | string | `""` | GitHub or Azure DevOps personal access token |
 | nameOverride | string | `""` | Partially override resource names (adds suffix) |
 | fullnameOverride | string | `""` | Fully override resource names |
 | extraObjects | tpl/list | `[]` | Array of extra objects to deploy with the release |
@@ -70,6 +141,6 @@ helm upgrade gitops-connector gitops-connector \
 | service.type | string | `"ClusterIP"` | Service type |
 | service.port | int | `8080` | Port to expose |
 | serviceAccount.create | bool | `true` | Specifies whether a service account should be created |
-| serviceAccount.automount | bool | `false` | Specifies whether a service account token should be mounted |
+| serviceAccount.automount | bool | `true` | Specifies whether a service account token should be mounted |
 | serviceAccount.annotations | tpl/object | `{}` | Annotations to add to the service account |
 | serviceAccount.name | string | `""` | The name of the service account to use. If not set and create is true, a name is generated using the fullname template |

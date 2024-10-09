@@ -14,7 +14,7 @@ class AzdoClient:
         # token is supposed to be stored in a secret without any transformations
         token = base64.b64encode(f':{utils.getenv("PAT")}'.encode("ascii")).decode("ascii")
 
-        logging.debug(f'PAT: {token}')
+        logging.debug(f'PAT: {token[:4]}...')
         self.headers = {'authorization': f'Basic {token}',
                         'Content-Type': 'application/json'}
 

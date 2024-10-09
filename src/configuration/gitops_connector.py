@@ -41,6 +41,8 @@ class GitopsConnector:
         if self.status_thread_running:
             self.status_thread_running = False
             if self.status_thread:
+                # Force the queue loop to break once it's processed remaining messages
+                self._global_message_queue.put(None)
                 self.status_thread.join()
                 logging.debug('Stopped status thread')
 
@@ -102,6 +104,3 @@ class GitopsConnector:
             except Exception as e:
                 logging.error(f'Unexpected exception in the message queue draining thread: {e}')
 
-
-# if __name__ == "__main__":
-#     git_ops_connector = GitopsConnector()

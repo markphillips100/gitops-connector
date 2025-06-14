@@ -2,6 +2,7 @@ import logging
 from configuration.gitops_connector import GitopsConnector
 from configuration.gitops_config import GitOpsConfig
 
+
 class GitOpsConnectorManager:
     """Manages configurations and the lifecycle of GitOpsConnector instances."""
     def __init__(self):

@@ -143,4 +143,3 @@ class GitopsConnector:
 
             except Exception as e:
                 logging.error(f'Unexpected exception in the message queue draining thread: {e}')
-

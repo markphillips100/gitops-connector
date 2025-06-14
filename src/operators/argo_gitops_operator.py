@@ -7,6 +7,7 @@ from operators.gitops_operator import GitopsOperatorInterface
 from operators.git_commit_status import GitCommitStatus
 from configuration.gitops_config import GitOpsConfig
 
+
 class ArgoGitopsOperator(GitopsOperatorInterface):
 
     def __init__(self, gitops_config: GitOpsConfig):
@@ -48,7 +49,7 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
         logging.debug(f'is_finished called.  phase_data: {json.dumps(phase_data, indent=2)}')
         phase_status, _, health_status = self._get_statuses(phase_data)
         logging.debug(f'is_finished: phase_status: {phase_status}, health_status: {health_status}')
-        
+
         is_finished = \
             phase_status != 'Inconclusive' \
             and phase_status != 'Running' \
@@ -80,7 +81,7 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
 
     def is_supported_message(self, phase_data) -> bool:
         if ((not self.is_supported_operator(phase_data)) or
-            phase_data['commitid'] == "<no value>" or 
+            phase_data['commitid'] == "<no value>" or
             phase_data['resources'] == None):
             return False
         return True

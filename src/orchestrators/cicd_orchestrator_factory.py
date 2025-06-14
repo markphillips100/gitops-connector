@@ -16,7 +16,7 @@ class CicdOrchestratorFactory:
 
     @staticmethod
     def new_cicd_orchestrator(git_repository: GitRepositoryInterface, gitops_config: GitOpsConfig) -> CicdOrchestratorInterface:
-        cicd_orchestrator_type = gitops_config.cicd_orchestrator_type # utils.getenv("CICD_ORCHESTRATOR_TYPE", AZDO_TYPE)
+        cicd_orchestrator_type = gitops_config.cicd_orchestrator_type
 
         if cicd_orchestrator_type == AZDO_TYPE:
             return AzdoCicdOrchestrator(git_repository, gitops_config)

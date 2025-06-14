@@ -7,6 +7,7 @@ from kubernetes import config as k8s_config
 from configuration.gitops_config import GitOpsConfig
 from configuration.gitops_connector_manager import GitOpsConnectorManager
 
+
 class GitOpsConfigOperator:
     def __init__(self, connector_manager: GitOpsConnectorManager):
         self.configurations = {}  # Store configuration objects indexed by resource name

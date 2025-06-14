@@ -76,15 +76,10 @@ class ArgoGitopsOperator(GitopsOperatorInterface):
             genre='ArgoCD')
 
     def is_supported_operator(self, phase_data) -> bool:
-        return (self.gitops_config.name == 'singleInstance' or
-                self.gitops_config.name != 'singleInstance' and phase_data.get('gitops_connector_config_name') == self.gitops_config.name)
+        return self.gitops_config.name == 'singleInstance' or phase_data.get('gitops_connector_config_name') == self.gitops_config.name
 
     def is_supported_message(self, phase_data) -> bool:
-        if ((not self.is_supported_operator(phase_data)) or
-            phase_data['commitid'] == "<no value>" or
-            phase_data['resources'] == None):
-            return False
-        return True
+        return self.is_supported_operator(phase_data) and phase_data.get('commitid') != "<no value>" and phase_data.get('resources') is not None
 
     def _get_deployment_status_summary(self, resources):
         total = len(resources)

@@ -77,7 +77,7 @@ class AzdoCicdOrchestrator(CicdOrchestratorInterface):
     def _get_pr_task_data(self, pr_num, is_alive=True):
         logging.debug(f'_get_pr_task_data called.  pr_num: {pr_num}, is_alive: {is_alive}')
         return self.git_repository.get_pr_metadata(pr_num)
-    
+
     # Given a PR task, check if it's parent plan has already completed.
     # Note: Completed does not necessarily mean it succeeded.
     def _plan_already_completed(self, pr_task):
@@ -120,7 +120,7 @@ class AzdoCicdOrchestrator(CicdOrchestratorInterface):
         logging.debug(f'Check if job {job_id} already completed: state = {job_state}')
         job_state_completed = job_state == 'completed'
         return job_state_completed
-    
+
     def notify_abandoned_pr_tasks(self):
         logging.debug('notify_abandoned_pr_tasks called')
         update_count = 0

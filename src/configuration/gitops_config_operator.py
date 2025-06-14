@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 import kopf
 import logging
 from kubernetes import config as k8s_config

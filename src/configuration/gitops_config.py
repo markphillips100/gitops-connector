@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 class GitOpsConfig:
     def __init__(self,
                  name,

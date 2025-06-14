@@ -75,6 +75,7 @@ else:
     kopf_thread = Thread(target=run_kopf_operator)
     kopf_thread.start()
 
+
 @application.route("/gitopsphase", methods=['POST'])
 def gitopsphase():
     # Use per process timer to stash the time we got the request

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 import logging
 from configuration.gitops_connector import GitopsConnector
 from configuration.gitops_config import GitOpsConfig

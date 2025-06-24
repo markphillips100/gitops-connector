@@ -58,7 +58,7 @@ class AzdoCicdOrchestrator(CicdOrchestratorInterface):
         planurl = pr_task['planurl']
         projectid = pr_task['projectid']
         planid = pr_task['planid']
-        url = f'{planurl}{projectid}/_apis/distributedtask/hubs/build/plans/{planid}/events?api-version=2.0-preview.1'
+        url = f'{planurl}{projectid}/_apis/distributedtask/hubs/build/plans/{planid}/events?api-version=7.1'
         data = {
             'name': "TaskCompleted",
             'taskId': pr_task['taskid'],
@@ -84,7 +84,7 @@ class AzdoCicdOrchestrator(CicdOrchestratorInterface):
         planurl = pr_task['planurl']
         projectid = pr_task['projectid']
         planid = pr_task['planid']
-        url = f'{planurl}{projectid}/_apis/distributedtask/hubs/build/plans/{planid}'
+        url = f'{planurl}{projectid}/_apis/distributedtask/hubs/build/plans/{planid}?api-version=7.1'
 
         response = requests.get(url=url, headers=self.headers)
         # Throw appropriate exception if request failed

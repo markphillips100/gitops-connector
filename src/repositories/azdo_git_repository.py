@@ -66,10 +66,17 @@ class AzdoGitRepository(GitRepositoryInterface):
     # Returns an array of PR dictionaries with an optional status filter
     # pr_status values: https://docs.microsoft.com/en-us/rest/api/azure/devops/git/pull%20requests/get%20pull%20requests?view=azure-devops-rest-6.0#pullrequeststatus
     def get_prs(self, pr_status):
+        from datetime import datetime, timedelta, timezone
+
         pr_status_param = ''
         if pr_status:
             pr_status_param = f'searchCriteria.status={pr_status}&'
-        url = f'{self.pr_repository_api}/pullRequests?{pr_status_param}api-version=6.0'
+            if pr_status == "abandoned":
+                # Calculate minTime as 1 hour ago in UTC, formatted as ISO 8601
+                min_time = (datetime.now(timezone.utc) - timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+                pr_status_param += f'searchCriteria.minTime={min_time}&searchCriteria.queryTimeRangeType=closed&'
+
+        url = f'{self.pr_repository_api}/pullRequests?{pr_status_param}api-version=7.1'
 
         logging.debug(f'get_prs: url: {url}')
         response = requests.get(url=url, headers=self.headers)
